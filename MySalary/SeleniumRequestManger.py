@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 
 
 class SeleniumManager:
@@ -25,7 +26,11 @@ class SeleniumManager:
         :param password:
         :return:
         """
-        self.driver.get(f'https://{username}:{password}@deshe.matrix.co.il/')
+        try:
+            self.driver.set_page_load_timeout(10)
+            self.driver.get(f'https://{username}:{password}@deshe.matrix.co.il/')
+        except TimeoutException:
+            raise TimeoutException("Timeout. Check your credentials or your internet connection")
 
 
-SeleniumManager('idanru', '********', headless=False)
+SeleniumManager('idanru', '123456', headless=False)
