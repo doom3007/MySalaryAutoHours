@@ -31,18 +31,6 @@ class ExcelAnalyzer:
         pass
 
 
-class RequestManager:
-    def __init__(self, url, credentials):
-        self.url = url
-        self.credentials = credentials
-
-    def login(self):
-        pass
-
-    def pass_hours_for_date(self, data):
-        pass
-
-
 class DateManager:
     def __init__(self, path_to_excel):
         self.excel_analyzer = ExcelAnalyzer(path_to_excel)
