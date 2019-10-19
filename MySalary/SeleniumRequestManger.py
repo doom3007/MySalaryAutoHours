@@ -30,6 +30,7 @@ class SeleniumManager:
             self.driver.set_page_load_timeout(10)
             self.driver.get(f'https://{username}:{password}@deshe.matrix.co.il/')
         except TimeoutException:
+            self.driver.close()
             raise TimeoutException("Timeout. Check your credentials or your internet connection")
 
 
