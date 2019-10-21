@@ -1,7 +1,7 @@
 from datetime import datetime
 import CssSelectors as cs
-import time
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
 
 
@@ -52,6 +52,8 @@ class SeleniumManager:
         # from now on we are working inside the report frame.
         self.enter_add_report_frames()
         self.navigate_to_day(start_date.day)
+        self.enter_start_hours(start_date)
+        self.enter_end_hours(end_date)
 
     def navigate_to_month(self, month, year):
         """
@@ -141,8 +143,45 @@ class SeleniumManager:
         sec_frame = self.driver.find_element_by_css_selector('#frmHoursReportsDataEntry')
         self.driver.switch_to.frame(sec_frame)
 
+    def enter_start_hours(self, start_date: datetime):
+        """
+        Will enter the start hour into the relevant fields.
+        :param start_date:
+        :return:
+        """
+        hour = start_date.strftime('%H')
+        minutes = start_date.strftime('%M')
+        hours_input_element = self.driver.find_element_by_css_selector(cs.START_HOURS_INPUT)
+        minutes_input_element = self.driver.find_element_by_css_selector(cs.START_MINUTES_INPUT)
+        self.enter_text_into_input_field(hours_input_element, hour)
+        self.enter_text_into_input_field(minutes_input_element, minutes)
+
+    def enter_end_hours(self, end_date: datetime):
+        """
+        Will enter the start hour into the relevant fields.
+        :param start_date:
+        :return:
+        """
+        hour = end_date.strftime('%H')
+        minutes = end_date.strftime('%M')
+        hours_input_element = self.driver.find_element_by_css_selector(cs.END_HOURS_INPUT)
+        minutes_input_element = self.driver.find_element_by_css_selector(cs.END_MINUTES_INPUT)
+        self.enter_text_into_input_field(hours_input_element, hour)
+        self.enter_text_into_input_field(minutes_input_element, minutes)
+
+    def enter_text_into_input_field(self, element, text):
+        """
+        First clearing the element text, then entering it.
+        :param element: WebDriver element
+        :param text: string
+        :return:
+        """
+        element.send_keys(Keys.CONTROL + "a")
+        element.send_keys(Keys.DELETE)
+        element.send_keys(text)
+
 
 s = SeleniumManager('idanru', 'dPp0xLi73UhW', headless=False)
-start_date = datetime(2019, 9, 21, 8)
-end_date = datetime(2019, 9, 21, 12)
+start_date = datetime(2019, 9, 29, 8)
+end_date = datetime(2019, 9, 29, 12)
 s.report_shift(start_date, end_date)
