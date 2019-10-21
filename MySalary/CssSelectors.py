@@ -18,3 +18,5 @@ START_HOURS_INPUT = '#txtFromHours'
 START_MINUTES_INPUT = '#txtFromMinutes'
 END_HOURS_INPUT = '#txtToHours'
 END_MINUTES_INPUT = '#txtToMinutes'
+
+SAVE_HOURS_REPORT = 'input[name=btnSaveNew]'

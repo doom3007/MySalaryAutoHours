@@ -54,6 +54,8 @@ class SeleniumManager:
         self.navigate_to_day(start_date.day)
         self.enter_start_hours(start_date)
         self.enter_end_hours(end_date)
+        self.save_hour_report()
+        self.exit_add_report_frames()
 
     def navigate_to_month(self, month, year):
         """
@@ -116,12 +118,16 @@ class SeleniumManager:
     def navigate_to_day(self, day):
         """
         Once the page is navigated to the currect month, use this function to choose the current day in the month.
-        :param day:
+        :param day: number representing the day num in the month
         :return:
         """
-        # using an ugly xpath selector here since matching by text is not available at css selector level.
-        xpath_day_selector = f'//td[@class="calDay"][text()={day}]'
-        self.driver.find_element_by_xpath(xpath_day_selector).click()
+        # check requested day is NOT the selected day
+        selected_day = self.driver.find_element_by_css_selector(cs.SELECTED_DAY).text
+        if selected_day != str(day):
+            # change to requested day
+            # using an ugly xpath selector here since matching by text is not available at css selector level.
+            xpath_day_selector = f'//td[@class="calDay"][text()={day}]'
+            self.driver.find_element_by_xpath(xpath_day_selector).click()
 
     def enter_add_report_frames(self):
         """
@@ -142,6 +148,11 @@ class SeleniumManager:
         self.driver.switch_to.frame(frame)
         sec_frame = self.driver.find_element_by_css_selector('#frmHoursReportsDataEntry')
         self.driver.switch_to.frame(sec_frame)
+
+    def exit_add_report_frames(self):
+        # this is done twice since we are exiting 2 frames.
+        self.driver.switch_to.default_content()
+        self.driver.switch_to.default_content()
 
     def enter_start_hours(self, start_date: datetime):
         """
@@ -180,8 +191,14 @@ class SeleniumManager:
         element.send_keys(Keys.DELETE)
         element.send_keys(text)
 
+    def save_hour_report(self):
+        self.driver.find_element_by_css_selector(cs.SAVE_HOURS_REPORT).click()
 
-s = SeleniumManager('idanru', 'dPp0xLi73UhW', headless=False)
+
+s = SeleniumManager('idanru', '123456', headless=False)
 start_date = datetime(2019, 9, 29, 8)
 end_date = datetime(2019, 9, 29, 12)
+s.report_shift(start_date, end_date)
+start_date = datetime(2019, 10, 21, 8)
+end_date = datetime(2019, 10, 21, 12)
 s.report_shift(start_date, end_date)
