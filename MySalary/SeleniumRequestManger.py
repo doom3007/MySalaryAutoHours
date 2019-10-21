@@ -1,5 +1,5 @@
 from datetime import datetime
-from . import CssSelectors as cs
+import CssSelectors as cs
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 
@@ -46,6 +46,8 @@ class SeleniumManager:
         if start_date.month != end_date.month or start_date.day != end_date.day:
             raise ValueError("Cannot report shifts on multiple days")
 
+        self.navigate_to_month(start_date.month, start_date.year)
+
     def navigate_to_month(self, month, year):
         """
         Navigating the Deshe page to the requested month.
@@ -53,14 +55,34 @@ class SeleniumManager:
         :param year: number representing the last 2 digits of the dedired year (2019 will be represented as 19)
         :return:
         """
-        pass
+        cur_year = self.get_current_year()
+        cur_month = self.get_current_month()
+        current_date = datetime(cur_year, self.get_current_month(), 1)
+        dest_date = datetime(year, month, 1)
+        while current_date != dest_date:
+            # find button to click on: (prev or next year)
+            if current_date < dest_date:
+                # month is ahead, click on month forward.
+                button_selector = cs.NEXT_MONTH
+            else:
+                # month is before, go back in month timeline.
+                button_selector = cs.PREVIOUS_MONTH
+
+            # click on the selected button. if possible.
+            button_to_click = self.driver.find_element_by_css_selector(button_selector)
+            if button_to_click.is_enabled():
+                button_to_click.click()
+            else:
+                raise ValueError(f'Cannot go to {month}/{year} (mm/yy) as it seems to be blocked. please check your are not trying to access months in the future.')
+
+            current_date = datetime(self.get_current_year(), self.get_current_month(), 1)
 
     def get_current_month(self):
         """
         Get the current displayed month, in numbers.
         :return: number representing the current month
         """
-        current_month = self.driver.find_element_by_css_selector(cs.CURRENT_MONTH)
+        current_month = self.driver.find_element_by_css_selector(cs.CURRENT_MONTH).text
         months_to_numbers = {
             'ינואר': 1,
             'פבואר': 2,
@@ -77,5 +99,15 @@ class SeleniumManager:
         }
         return months_to_numbers[current_month]
 
+    def get_current_year(self):
+        """
+        Return the current year in the Deshe system.
+        :return: number representing the current year.
+        """
+        return 2000 + int(self.driver.find_element_by_css_selector(cs.CURRENT_YEAR).text)
 
-SeleniumManager('idanru', '123456', headless=False)
+
+s = SeleniumManager('idanru', '123456', headless=False)
+start_date = datetime(2019, 9, 21, 8)
+end_date = datetime(2019, 9, 21, 12)
+s.report_shift(start_date, end_date)
