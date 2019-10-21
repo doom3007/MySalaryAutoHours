@@ -3,6 +3,7 @@ CURRENT_MONTH = '#Header1_MonthAndYearBrowser1_spnMonth'  # as hebrew text (נו
 PREVIOUS_MONTH = '#Header1_MonthAndYearBrowser1_imgbtnPrevMonth'
 NEXT_MONTH = '#Header1_MonthAndYearBrowser1_imgbtnNextMonth'
 ADD_REPORT_TABLE = 'table td[valign=top] > table:not(.main_grid)'  # for easy selection of children inside it
+REPORT_HOURS_FRAME = '#mainFrameSet'
 
 # select best practice: https://stackoverflow.com/a/28613320/7320123
 DROPDOWN_CUSTOMER = 'select[name="ddlCustomers"]'

@@ -1,5 +1,6 @@
 from datetime import datetime
 import CssSelectors as cs
+import time
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 
@@ -46,7 +47,11 @@ class SeleniumManager:
         if start_date.month != end_date.month or start_date.day != end_date.day:
             raise ValueError("Cannot report shifts on multiple days")
 
+        # start_date and end_date should be in the same date.
         self.navigate_to_month(start_date.month, start_date.year)
+        # from now on we are working inside the report frame.
+        self.enter_add_report_frames()
+        self.navigate_to_day(start_date.day)
 
     def navigate_to_month(self, month, year):
         """
@@ -106,8 +111,38 @@ class SeleniumManager:
         """
         return 2000 + int(self.driver.find_element_by_css_selector(cs.CURRENT_YEAR).text)
 
+    def navigate_to_day(self, day):
+        """
+        Once the page is navigated to the currect month, use this function to choose the current day in the month.
+        :param day:
+        :return:
+        """
+        # using an ugly xpath selector here since matching by text is not available at css selector level.
+        xpath_day_selector = f'//td[@class="calDay"][text()={day}]'
+        self.driver.find_element_by_xpath(xpath_day_selector).click()
 
-s = SeleniumManager('idanru', '123456', headless=False)
+    def enter_add_report_frames(self):
+        """
+        Since the Deshe site is built like so:
+        ...
+        <iframe>
+            ...
+            <frameset>
+                <frame id="frmHoursReportsDataEntry"> </frame>
+                ...
+            </frameset>
+        </iframe>
+        we will need to access those frames in order to get to their content.
+        :return:
+        """
+        # because we are working inside two frames, first we will need to change the frame context to inside those frames.
+        frame = self.driver.find_element_by_css_selector('#frmMainHoursReportsManagement')
+        self.driver.switch_to.frame(frame)
+        sec_frame = self.driver.find_element_by_css_selector('#frmHoursReportsDataEntry')
+        self.driver.switch_to.frame(sec_frame)
+
+
+s = SeleniumManager('idanru', 'dPp0xLi73UhW', headless=False)
 start_date = datetime(2019, 9, 21, 8)
 end_date = datetime(2019, 9, 21, 12)
 s.report_shift(start_date, end_date)
