@@ -9,7 +9,7 @@ DROPDOWN_CUSTOMER = 'select[name="ddlCustomers"]'
 DROPDOWN_PROJECT = 'select[name="ddlProjects"]'
 DROPDOWN_TASK = 'select[name="ddlTasks"]'
 
-TEXT_ELABORATION = 'textarea[name=txtElaboration]'  # פירוט
+TEXT_ELABORATION = '#txtElaboration'  # פירוט
 OPTIONAL_DAYS = 'td.calDay'  # returns all the possible days to select in the moths, without the selected day.
 SELECTED_DAY = '#tdSelectedDay'
 

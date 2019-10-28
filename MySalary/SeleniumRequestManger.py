@@ -36,11 +36,12 @@ class SeleniumManager:
             self.driver.close()
             raise TimeoutException("Timeout. Check your credentials or your internet connection")
 
-    def report_shift(self, start_date: datetime, end_date: datetime):
+    def report_shift(self, start_date: datetime, end_date: datetime, elaboration_text=None):
         """
         Report a shift into a logged in Deshe session.
         :param start_date: Datetime object
         :param end_date: Datetime object
+        :param elaboration_text: string, elaboration text to be added.
         :return:
         """
         # Due to the Deshe system, cannot report shifts on a couple of days.
@@ -51,10 +52,19 @@ class SeleniumManager:
         self.navigate_to_month(start_date.month, start_date.year)
         # from now on we are working inside the report frame.
         self.enter_add_report_frames()
+
+        # check that month is not locked (we may report in that month)
+        if not self.can_report_in_current_month():
+            raise ValueError(f'Cannot report hours in this month {start_date.month}')
+
+        if elaboration_text:
+            self.enter_elaboration_text(elaboration_text)
+            
         self.navigate_to_day(start_date.day)
         self.enter_start_hours(start_date)
         self.enter_end_hours(end_date)
-        self.save_hour_report()
+
+        # self.save_hour_report()
         self.exit_add_report_frames()
 
     def navigate_to_month(self, month, year):
@@ -84,8 +94,8 @@ class SeleniumManager:
                 raise ValueError(f'Cannot go to {month}/{year} (mm/yy) as it seems to be blocked. please check your are not trying to access months in the future.')
 
             current_date = datetime(self.get_current_year(), self.get_current_month(), 1)
-        if not self.can_report_in_current_month():
-            raise ValueError(f'Cannot report hours in month {month}')
+        print(len(self.driver.find_elements_by_css_selector(cs.SELECTED_DAY)))
+
 
     def get_current_month(self):
         """
@@ -204,11 +214,18 @@ class SeleniumManager:
         # if selectedDay is available then oyu may report, else the report table does exists but is invisible.
         return len(self.driver.find_elements_by_css_selector(cs.SELECTED_DAY)) >= 1
 
+    def enter_elaboration_text(self, elaboration_text: str):
+        """
+        Adding elaboration (פירוט) text field.
+        :param elaboration_text: string
+        :return:
+        """
+        elaboration_text_field = self.driver.find_element_by_css_selector(cs.TEXT_ELABORATION)
+        elaboration_text_field.send_keys(elaboration_text)
+
+
 
 s = SeleniumManager('idanru', 'dPp0xLi73UhW', headless=False)
-start_date = datetime(2019, 9, 29, 8)
-end_date = datetime(2019, 9, 29, 12)
-s.report_shift(start_date, end_date)
 start_date = datetime(2019, 10, 21, 8)
 end_date = datetime(2019, 10, 21, 12)
-s.report_shift(start_date, end_date)
+s.report_shift(start_date, end_date, elaboration_text="test שדגשדג")
