@@ -84,6 +84,8 @@ class SeleniumManager:
                 raise ValueError(f'Cannot go to {month}/{year} (mm/yy) as it seems to be blocked. please check your are not trying to access months in the future.')
 
             current_date = datetime(self.get_current_year(), self.get_current_month(), 1)
+        if not self.can_report_in_current_month():
+            raise ValueError(f'Cannot report hours in month {month}')
 
     def get_current_month(self):
         """
@@ -196,13 +198,11 @@ class SeleniumManager:
     def can_report_in_current_month(self):
         """
         Once a month is over, you may no longer report for it.
-        Checks if we can report for the current month, and if not raising an exception.
+        Checks if we can report for the current month, returns boolean to check if possible or not
         :return:
         """
         # if selectedDay is available then oyu may report, else the report table does exists but is invisible.
-        if len(self.driver.find_elements_by_css_selector(cs.SELECTED_DAY)) < 1:
-            raise ValueError("Cannot report hours in the current month")
-
+        return len(self.driver.find_elements_by_css_selector(cs.SELECTED_DAY)) >= 1
 
 
 s = SeleniumManager('idanru', 'dPp0xLi73UhW', headless=False)
