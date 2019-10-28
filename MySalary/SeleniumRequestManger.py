@@ -65,7 +65,6 @@ class SeleniumManager:
         :return:
         """
         cur_year = self.get_current_year()
-        cur_month = self.get_current_month()
         current_date = datetime(cur_year, self.get_current_month(), 1)
         dest_date = datetime(year, month, 1)
         while current_date != dest_date:
@@ -194,8 +193,19 @@ class SeleniumManager:
     def save_hour_report(self):
         self.driver.find_element_by_css_selector(cs.SAVE_HOURS_REPORT).click()
 
+    def can_report_in_current_month(self):
+        """
+        Once a month is over, you may no longer report for it.
+        Checks if we can report for the current month, and if not raising an exception.
+        :return:
+        """
+        # if selectedDay is available then oyu may report, else the report table does exists but is invisible.
+        if len(self.driver.find_elements_by_css_selector(cs.SELECTED_DAY)) < 1:
+            raise ValueError("Cannot report hours in the current month")
 
-s = SeleniumManager('idanru', '123456', headless=False)
+
+
+s = SeleniumManager('idanru', 'dPp0xLi73UhW', headless=False)
 start_date = datetime(2019, 9, 29, 8)
 end_date = datetime(2019, 9, 29, 12)
 s.report_shift(start_date, end_date)
