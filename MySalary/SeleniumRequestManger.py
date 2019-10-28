@@ -2,6 +2,7 @@ from datetime import datetime
 import CssSelectors as cs
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import TimeoutException
 
 
@@ -36,7 +37,7 @@ class SeleniumManager:
             self.driver.close()
             raise TimeoutException("Timeout. Check your credentials or your internet connection")
 
-    def report_shift(self, start_date: datetime, end_date: datetime, elaboration_text=None):
+    def report_shift(self, start_date: datetime, end_date: datetime, elaboration_text=None, holiday=False, disease=False):
         """
         Report a shift into a logged in Deshe session.
         :param start_date: Datetime object
@@ -57,9 +58,18 @@ class SeleniumManager:
         if not self.can_report_in_current_month():
             raise ValueError(f'Cannot report hours in this month {start_date.month}')
 
+        # choose currect drop downs case.
+        if holiday:
+            self.choose_holiday()
+        elif disease:
+            self.choose_disease()
+        else:
+            self.choose_customer()
+
+        # report elaboration_text
         if elaboration_text:
             self.enter_elaboration_text(elaboration_text)
-            
+
         self.navigate_to_day(start_date.day)
         self.enter_start_hours(start_date)
         self.enter_end_hours(end_date)
@@ -223,9 +233,42 @@ class SeleniumManager:
         elaboration_text_field = self.driver.find_element_by_css_selector(cs.TEXT_ELABORATION)
         elaboration_text_field.send_keys(elaboration_text)
 
+    def choose_customer(self, special_occasion=False):
+        """
+        Choosing a customer. In case of special report (holiday, deceases, ... ) choose העדרויות שונות
+        else choosing אינפיניטי לבס  ארץ אנד די בע"מ
+        :return:
+        """
+        if special_occasion:
+            self.choose_select_element(cs.DROPDOWN_CUSTOMER, 'העדרויות שונות')
+        else:
+            self.choose_select_element(cs.DROPDOWN_CUSTOMER, 'אינפיניטי לאבס אר. אנד. די בע"מ')
+
+    def choose_select_element(self, css_selector, visible_text):
+        """
+        Choosing a select element in the site.
+        :param css_selector: the element css selector
+        :param visible_text: the text represnting the select we want to choose
+        :return: Null or error in case task is not avilable
+        """
+        select = Select(self.driver.find_element_by_css_selector(css_selector))
+        select.select_by_visible_text(visible_text)
+
+    def choose_holiday(self):
+        """
+        Choosing a holiday for the report
+        :return:
+        """
+        self.choose_customer(special_occasion=True)
+        self.choose_select_element(cs.DROPDOWN_PROJECT, 'חופשה')
+
+    def choose_disease(self):
+        self.choose_customer(special_occasion=True)
+        self.choose_select_element(cs.DROPDOWN_PROJECT, 'מחלה')
+        self.choose_select_element(cs.DROPDOWN_TASK, 'מחלת עובד')
 
 
 s = SeleniumManager('idanru', 'dPp0xLi73UhW', headless=False)
 start_date = datetime(2019, 10, 21, 8)
 end_date = datetime(2019, 10, 21, 12)
-s.report_shift(start_date, end_date, elaboration_text="test שדגשדג")
+s.report_shift(start_date, end_date, elaboration_text="test שדגשדג", holiday=True)
