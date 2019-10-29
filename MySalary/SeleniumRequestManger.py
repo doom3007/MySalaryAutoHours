@@ -77,6 +77,40 @@ class SeleniumManager:
         # self.save_hour_report()
         self.exit_add_report_frames()
 
+    def enter_special_occasion(self, special_occasion: str, date: datetime, hours: int, minutes: int, elaboration_text=None):
+        """
+        Report a special occasion, such as a holiday or disease.
+        :param special_occasion: 'holiday' or 'disease'
+        :param date: datetime obejct, representing the date the occasion happened at.
+        :param hours: number representing the number of hours to report
+        :param minutes: number representing the numer of minutes to report.
+        :return:
+        """
+        self.navigate_to_month(date.month, date.year)
+        # from now on we are working inside the report frame.
+        self.enter_add_report_frames()
+
+        # check that month is not locked (we may report in that month)
+        if not self.can_report_in_current_month():
+            raise ValueError(f'Cannot report hours in this month {start_date.month}')
+
+        self.choose_customer(special_occasion=True)
+        special_occasions = {
+            'holiday': self.report_holiday,
+            'disease': self.report_disease,
+        }
+        # run the relevant function
+        special_occasions[special_occasion]()
+
+        # report elaboration_text
+        if elaboration_text:
+            self.enter_elaboration_text(elaboration_text)
+
+        self.navigate_to_day(date.day)
+        self.enter_hours(hours, minutes)
+        self.save_hour_report()
+        self.exit_add_report_frames()
+
     def navigate_to_month(self, month, year):
         """
         Navigating the Deshe page to the requested month.
@@ -181,12 +215,7 @@ class SeleniumManager:
         :param start_date:
         :return:
         """
-        hour = start_date.strftime('%H')
-        minutes = start_date.strftime('%M')
-        hours_input_element = self.driver.find_element_by_css_selector(cs.START_HOURS_INPUT)
-        minutes_input_element = self.driver.find_element_by_css_selector(cs.START_MINUTES_INPUT)
-        self.enter_text_into_input_field(hours_input_element, hour)
-        self.enter_text_into_input_field(minutes_input_element, minutes)
+        self.fill_hours_field(cs.START_MINUTES_INPUT, cs.START_HOURS_INPUT, start_date)
 
     def enter_end_hours(self, end_date: datetime):
         """
@@ -194,12 +223,34 @@ class SeleniumManager:
         :param start_date:
         :return:
         """
-        hour = end_date.strftime('%H')
-        minutes = end_date.strftime('%M')
-        hours_input_element = self.driver.find_element_by_css_selector(cs.END_HOURS_INPUT)
-        minutes_input_element = self.driver.find_element_by_css_selector(cs.END_MINUTES_INPUT)
+        self.fill_hours_field(cs.END_MINUTES_INPUT, cs.END_HOURS_INPUT, end_date)
+
+    def enter_hours(self, hours: int, minutes: int):
+        """
+        When in special occasion you have only the hours field.
+        Reporting into that field.
+        :param hours:
+        :param minutes:
+        :return:
+        """
+        date = datetime(1990, 1, 1, hours, minutes)
+        self.fill_hours_field(cs.MINUTES_INPUT, cs.HOURS_INPUT, date)
+
+    def fill_hours_field(self, minutes_css: str, hours_css: str, date: datetime):
+        """
+        Filling an hour field.
+        :param minutes_css: minutes element cs selector.
+        :param hours_css: hours element cs selector.
+        :param date: date with the hour to report.
+        :return:
+        """
+        hour = date.strftime('%H')
+        minutes = date.strftime('%M')
+        hours_input_element = self.driver.find_element_by_css_selector(hours_css)
+        minutes_input_element = self.driver.find_element_by_css_selector(minutes_css)
         self.enter_text_into_input_field(hours_input_element, hour)
         self.enter_text_into_input_field(minutes_input_element, minutes)
+
 
     def enter_text_into_input_field(self, element, text):
         """
@@ -254,16 +305,14 @@ class SeleniumManager:
         select = Select(self.driver.find_element_by_css_selector(css_selector))
         select.select_by_visible_text(visible_text)
 
-    def choose_holiday(self):
+    def report_holiday(self):
         """
         Choosing a holiday for the report
         :return:
         """
-        self.choose_customer(special_occasion=True)
         self.choose_select_element(cs.DROPDOWN_PROJECT, 'חופשה')
 
-    def choose_disease(self):
-        self.choose_customer(special_occasion=True)
+    def report_disease(self):
         self.choose_select_element(cs.DROPDOWN_PROJECT, 'מחלה')
         self.choose_select_element(cs.DROPDOWN_TASK, 'מחלת עובד')
 
@@ -271,4 +320,4 @@ class SeleniumManager:
 s = SeleniumManager('idanru', 'dPp0xLi73UhW', headless=False)
 start_date = datetime(2019, 10, 21, 8)
 end_date = datetime(2019, 10, 21, 12)
-s.report_shift(start_date, end_date, elaboration_text="test שדגשדג", holiday=True)
+s.enter_special_occasion('holiday', start_date, 1, 0, elaboration_text="test שדגשדג")

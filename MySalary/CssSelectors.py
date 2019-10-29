@@ -18,4 +18,8 @@ START_MINUTES_INPUT = '#txtFromMinutes'
 END_HOURS_INPUT = '#txtToHours'
 END_MINUTES_INPUT = '#txtToMinutes'
 
+# Only available when reporting a special occasion
+HOURS_INPUT = '#txtHours'
+MINUTES_INPUT = '#txtMinutes'
+
 SAVE_HOURS_REPORT = 'input[name=btnSaveNew]'
